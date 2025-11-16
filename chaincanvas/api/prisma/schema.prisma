@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String  @id @default(cuid())
+  fid          Int     @unique
+  displayName  String?
+  avatarUrl    String?
+  walletAddress String?
+
+  edits Edit[]
+}
+
+model Game {
+  id               String   @id @default(cuid())
+  date             DateTime @db.Date
+  originalImageUrl String
+  currentImageUrl  String
+  editCount        Int      @default(0)
+  maxEdits         Int      @default(10)
+  state            String   @default("open") // e.g., "open", "finalized", "minted"
+
+  lockUserFid    Int?
+  lockExpiresAt  DateTime?
+
+  edits        Edit[]
+  nftContract  String?
+  tokenId      String?
+  metadataCid  String?
+}
+
+model Edit {
+  id            String   @id @default(cuid())
+  imageUrl      String
+  prompt        String?
+  createdAt     DateTime @default(now())
+  chosenNextFid Int?
+  castUrl       String?
+
+  game   Game   @relation(fields: [gameId], references: [id])
+  gameId String
+
+  editor   User   @relation(fields: [editorFid], references: [fid])
+  editorFid Int
+}
